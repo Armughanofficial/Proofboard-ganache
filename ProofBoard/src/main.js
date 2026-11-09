@@ -25,8 +25,8 @@ const ABI = [
  'function owner() view returns (address)'
 ];
 
-const CONTRACT_ADDRESS = '0x4873D1B0C76588A66Cc4e8675e920bF12389E62c';
-const SEPOLIA_CHAIN_ID = 11155111n;
+const CONTRACT_ADDRESS = '0x68Eee9155291F7Da8061a5C8914C0b3f6e796C43';
+const GANACHE_CHAIN_ID = 1337n;
 
 const getProvider = () =>
  window.ethereum ? new ethers.BrowserProvider(window.ethereum) : null;
@@ -39,17 +39,17 @@ const shorten = a => a ? a.slice(0,6)+'…'+a.slice(-4) : '';
 const cleanError = e =>
  e?.shortMessage || e?.reason || e?.message?.slice(0,180) || 'Transaction failed';
 
-const checkSepolia = async provider => {
+const checkNetwork = async provider => {
  const network = await provider.getNetwork();
- if(network.chainId !== SEPOLIA_CHAIN_ID)
- throw new Error('Switch MetaMask to Hardhat Localhost first.');
+ if(network.chainId !== GANACHE_CHAIN_ID)
+ throw new Error('Switch MetaMask to Ganache Local (Chain ID: 1337) first.');
 };
 
 const loadContributions = async () => {
  const provider=getProvider();
  if(!provider) return [];
 
- await checkSepolia(provider);
+ await checkNetwork(provider);
 
  const contract=getContract(provider);
  const count=Number(await contract.getContributionCount());
@@ -162,8 +162,8 @@ function Wallet({w,setW,toast}){
     method:'eth_chainId'
    });
 
-   if(BigInt(chainId)!==SEPOLIA_CHAIN_ID)
-    throw new Error('Switch MetaMask to Sepolia first.');
+   if(BigInt(chainId)!==GANACHE_CHAIN_ID)
+    throw new Error('Switch MetaMask to Ganache Local (Chain ID: 1337) first.');
 
    const balanceHex=await window.ethereum.request({
     method:'eth_getBalance',
@@ -176,11 +176,11 @@ function Wallet({w,setW,toast}){
     s:'connected',
     address:accounts[0],
     a:shorten(accounts[0]),
-    n:'Sepolia',
+    n:'Ganache Local',
     bal:Number(ethers.formatEther(balance)).toFixed(4)+' ETH'
    });
 
-   toast('Wallet connected on Sepolia');
+   toast('Wallet connected on Ganache Local');
   }catch(e){
    setW({s:'idle'});
    toast(cleanError(e));
@@ -307,7 +307,7 @@ function App(){
   setBusy(true);
 
   try{
-   await checkSepolia(provider);
+   await checkNetwork(provider);
 
    const signer=await provider.getSigner();
    const contract=getContract(signer);
@@ -383,7 +383,7 @@ function App(){
   const ok=await write(
    'submitContribution',
    [form.t.trim(),url,form.c],
-   'Submitted on Sepolia. Waiting for admin review'
+   'Submitted on Ganache. Waiting for admin review'
   );
 
   if(ok){
@@ -465,7 +465,7 @@ function App(){
    <div className="ticker">
     <div><b>${items.length}</b><span>proofs submitted</span></div>
     <div><b>${minted.length}</b><span>badges minted</span></div>
-    <div><b>Sepolia</b><span>test network</span></div>
+    <div><b>Ganache</b><span>local testnet</span></div>
    </div>
   </div>
 
@@ -672,7 +672,7 @@ function App(){
  <section id="gallery">
   <h2>Minted gallery</h2>
   <p className="sub">
-   ${minted.length} badges minted on Sepolia. Hover to tilt, click to inspect.
+   ${minted.length} badges minted on Ganache. Hover to tilt, click to inspect.
   </p>
 
   <div className="gal">
@@ -707,8 +707,8 @@ function App(){
    gap:12,
    flexWrap:'wrap'
   }}>
-   <span>ProofBoard on Sepolia. Transactions require MetaMask.</span>
-   <span className="mono">contract 0x2d9C…b8d5 · Sepolia</span>
+   <span>ProofBoard on Ganache Local. Transactions require MetaMask.</span>
+   <span className="mono">contract ${shorten(CONTRACT_ADDRESS)} · Ganache</span>
   </div>
  </footer>
 
